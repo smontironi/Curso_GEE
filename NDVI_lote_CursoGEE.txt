@@ -1,0 +1,56 @@
+//importamos el shape del lote
+//fecha de siembra en año 2021
+// agrego el shape
+// lo visualizo en Layers 
+var Soja_2021 =  ee.FeatureCollection(table).geometry();
+Map.addLayer(Soja_2021,{}, "Soja_2021", 0);
+Map.centerObject(Soja_2021, 15);
+
+//marcamos un punto dentro del lote
+//importamos la coleccion LANDSAT/LC08/C02/T1_TOA
+//cargamos la imagen LANDSAT 8 para el primer dato del mes de febrero 2022
+
+var imagen = imageCollection.filterBounds(punto)
+            .filterDate('2022-02-01', '2022-02-28')
+            .first();
+            
+//modificamos los parametros de visualizacion y los importamos 
+imageVisParam = {"opacity":1,"bands":["B4","B3","B2"],"gamma":1};
+
+Map.addLayer(imagen, imageVisParam,'Landsat 8');
+Map.centerObject(punto, 15);
+
+// una vez cargada la imagen cambiamos los parametros de vizualizacion 
+// y los importamos
+// esta puesto en
+// imageVisParam = {"opacity":1,"bands":["B4","B3","B2"],"gamma":1};
+// para ejecutar mas facil
+
+//calcular NDVI
+var ndvi = imagen.normalizedDifference(['B5', 'B4']);
+
+//agregamos el NDVI al mapa 
+
+Map.addLayer(ndvi,imageVisParam_NDVI, 'NDVI');
+
+//filtramos por valores mayores a 0, configuramos la paleta de colores y lo
+//importamos como imageVisParam_NDVI
+
+//recortamos el NDVI por el lote y le asignamos otra paleta de colores imageVisParam_NDVI_Lote
+Map.addLayer(ndvi.clip(Soja_2021), imageVisParam_NDVI_Lote, 'NDVI_Lote');
+
+//creamos la imagen recortada como var
+
+var NDVI_Lote = ndvi.clip(Soja_2021)
+
+//podemos desactivar la capa NDVI para visualizar el NDVI recortado del Lote
+
+// exportamos a drive el recorte del lote
+
+Export.image.toDrive({
+image: NDVI_Lote,
+description: 'NDVI_Lote_GEE',
+scale: 10,
+fileFormat: 'GeoTIFF',
+folder: 'Curso_GEE',
+crs: 'EPSG:4326'});
